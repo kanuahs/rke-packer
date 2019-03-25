@@ -1,0 +1,7 @@
+nodes:
+  - address: 127.0.0.1
+    user: user1
+    role:
+      - controlplane
+      - etcd
+      - worker
