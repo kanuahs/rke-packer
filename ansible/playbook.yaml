@@ -92,11 +92,11 @@
       - name: copy cluster.yaml
         copy:
           src: ../rke/cluster.yaml
-          dest: ~/cluster.yaml
+          dest: "/home/{{ ssh_username }}/cluster.yaml"
           owner: "{{ ssh_username }}"
 
 
-      - name: bootsrap the cluster using rke
+      - name: bootstrap the cluster using rke
         shell: ~/rke up
 
 
