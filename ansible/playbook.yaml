@@ -5,11 +5,6 @@
 
     tasks:
 
-      # # Added in 2.8
-      # - name: generate ssh key for VM
-      #   openssh_keypair:
-      #     path: ./id_ssh_rsa
-
       - name: modprobe - load kernel modules
         modprobe:
           name: "{{ item }}"
@@ -47,6 +42,8 @@
             - xt_statistic
             - xt_tcpudp
 
+      - name: generate ssh keys in VM
+        command: ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -C "" -N ""
 
       - name: copy ssh key to VM
         authorized_key:
@@ -97,7 +94,7 @@
 
 
       - name: bootstrap the cluster using rke
-        shell: ~/rke up
+        shell: ~/rke up --config cluster.yaml
 
 
       - name: copy kube_config file to host running packer
