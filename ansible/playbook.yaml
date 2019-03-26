@@ -12,10 +12,9 @@
 
       - name: modprobe - load kernel modules
         modprobe:
-          name: {{ kernel_modules }}
+          name: {{ item }}
           state: present 
-        vars:
-          kernel_modules:
+        with_items:
             - br_netfilter
             - ip6_udp_tunnel
             - ip_set
