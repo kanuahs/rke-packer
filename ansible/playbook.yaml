@@ -56,6 +56,19 @@
             src: ~/.ssh/id_rsa 
             remote_src: yes
 
+      - name: Copy public key to host
+        copy:
+            dest: ../id_rsa.pub
+            src: ~/.ssh/id_rsa.pub
+            remote_src: yes
+
+
+      - name: Add generated key to authorized keys
+        authorized_key:
+          user: "{{ssh_username}}"
+          key: "{{ lookup('file','../id_rsa.pub')}}"
+
+
       - name: add docker repo key
         apt_key:
           url: "https://download.docker.com/linux/ubuntu/gpg"
