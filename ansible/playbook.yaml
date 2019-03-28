@@ -92,6 +92,13 @@
           mode: 0744
           owner: "{{ ssh_username }}"
 
+      # - name: copy rke binary
+      #   copy:
+      #     src: ../rke/rke
+      #     dest: "/home/{{ ssh_username }}/rke"
+      #     mode: 0744
+      #     owner: "{{ ssh_username }}"
+
       - name: copy cluster.yaml
         copy:
           src: ../rke/cluster.yaml
