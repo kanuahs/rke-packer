@@ -45,10 +45,16 @@
       - name: generate ssh keys in VM
         command: ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -C "" -N ""
 
-      - name: copy ssh key to VM
+      - name: Add generated key to authorized keys
         authorized_key:
           user: "{{ssh_username}}"
-          key: "{{ lookup('file','../id_ssh_rsa.pub') }}"
+          key: ~/.ssh/id_rsa.pub
+
+      - name: Copy private key to host
+        copy:
+            dest: ../id_rsa
+            src: ~/.ssh/id_rsa 
+            remote_src: yes
 
       - name: add docker repo key
         apt_key:
