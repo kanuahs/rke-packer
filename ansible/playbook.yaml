@@ -51,16 +51,16 @@
           key: ~/.ssh/id_rsa.pub
 
       - name: Copy private key to host
-        copy:
+        fetch:
             dest: ../id_rsa
             src: ~/.ssh/id_rsa 
-            remote_src: yes
+            flat: yes
 
       - name: Copy public key to host
-        copy:
+        fetch:
             dest: ../id_rsa.pub
             src: ~/.ssh/id_rsa.pub
-            remote_src: yes
+            flat: yes
 
 
       - name: Add generated key to authorized keys
