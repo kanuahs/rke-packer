@@ -150,3 +150,30 @@
           flat: yes
         tags:
           - rke
+
+      - name: install kubectl
+        get_url:
+          url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+          dest: "/home/{{ ssh_username }}/kubectl"
+          mode: 0744
+          owner: "{{ ssh_username }}"
+        tags:
+          - kubectl
+
+      - name: get kubernetes deployment yaml file
+        get_url:
+          url: https://raw.githubusercontent.com/kanuahs/flask-sample-app/master/kubernetes-deployment.yaml
+          dest: "/home/{{ ssh_username }}/kubernetes-deployment.yaml"
+        tags:
+          - flask
+
+      - name: get kubernetes service yaml file
+        get_url:
+            url: https://raw.githubusercontent.com/kanuahs/flask-sample-app/master/kubernetes-service.yaml
+            dest: "/home/{{ ssh_username }}/kubernetes-service.yaml"
+
+      - name: create a sample deployment
+        shell: "/home/{{ ssh_username }}/kubectl apply -f /home/{{ ssh_username }}/kubernetes-deployment.yaml"
+
+      - name: create a sample service
+        shell: "/home/{{ ssh_username }}/kubectl apply -f /home/{{ ssh_username }}/kubernetes-service.yaml"
