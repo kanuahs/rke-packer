@@ -74,8 +74,5 @@
     "playbook_file": "ansible/playbook.yaml",
     "user": "user1",
     "extra_arguments": ["--extra-vars", "ansible_become_pass={{user `password`}} ssh_username={{user `username`}} rke_version={{user `rke_version`}} kubectl_version={{user `kubectl_version`}}"]
-  },{
-    "type":"shell",
-    "inline":["/home/user1/rke up --config /home/user1/cluster.yaml"]
   }]
 }
