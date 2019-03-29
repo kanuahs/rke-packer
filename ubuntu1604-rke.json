@@ -1,12 +1,13 @@
 {
   "description": "Uses ubuntu 16.04 iso, installs rke, and launches a flask application and creates an ovf image. username, fullname and password are also set in http/preseed.cfg",
   "variables": {
-    "hostname": "ubuntu",
+    "hostname": "ubuntuvm",
     "fullname": "user1",
     "username": "user1",
     "password": "pass1",
     "disk_size": "20480",
-    "rke_version": "v0.2.0"
+    "rke_version": "v0.2.0",
+    "kubectl_version":"v1.14.0"
   },
   "builders": [{
     "headless": true,
@@ -49,7 +50,20 @@
       " -- <wait>",
       "<enter><wait>"
     ],
-
+    "vboxmanage": [
+      [
+        "modifyvm",
+        "{{.Name}}",
+        "--memory",
+        "3072"
+      ],
+      [
+        "modifyvm",
+        "{{.Name}}",
+        "--cpus",
+        "4"
+      ]
+    ],
 
     "communicator": "ssh",
     "ssh_username": "{{user `username`}}",
