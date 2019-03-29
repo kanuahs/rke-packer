@@ -145,8 +145,8 @@
 
       - name: copy kube_config file to host running packer
         fetch:
-          src: "/home/{{ ssh_username }}/kube_config_cluster.yml"
-          dest: ../kube_config_cluster.yml
+          src: "/home/{{ ssh_username }}/kube_config_cluster.yaml"
+          dest: ../kube_config_cluster.yaml
           flat: yes
         tags:
           - rke
@@ -173,7 +173,7 @@
             dest: "/home/{{ ssh_username }}/kubernetes-service.yaml"
 
       - name: create a sample deployment
-        shell: "/home/{{ ssh_username }}/kubectl apply -f /home/{{ ssh_username }}/kubernetes-deployment.yaml"
+        shell: "/home/{{ ssh_username }}/kubectl --kubeconfig=/home/{{ ssh_username }}kube_config_cluster.yaml apply -f /home/{{ ssh_username }}/kubernetes-deployment.yaml"
 
       - name: create a sample service
-        shell: "/home/{{ ssh_username }}/kubectl apply -f /home/{{ ssh_username }}/kubernetes-service.yaml"
+        shell: "/home/{{ ssh_username }}/kubectl --kubeconfig=/home/{{ ssh_username }}kube_config_cluster.yaml apply -f /home/{{ ssh_username }}/kubernetes-service.yaml"
