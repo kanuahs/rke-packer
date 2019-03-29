@@ -173,7 +173,7 @@
             dest: "/home/{{ ssh_username }}/kubernetes-service.yaml"
 
       - name: create a sample deployment
-        shell: "/home/{{ ssh_username }}/kubectl --kubeconfig=/home/{{ ssh_username }}kube_config_cluster.yaml apply -f /home/{{ ssh_username }}/kubernetes-deployment.yaml"
+        shell: "/home/{{ ssh_username }}/kubectl --kubeconfig=/home/{{ ssh_username }}/kube_config_cluster.yaml apply -f /home/{{ ssh_username }}/kubernetes-deployment.yaml"
 
       - name: create a sample service
-        shell: "/home/{{ ssh_username }}/kubectl --kubeconfig=/home/{{ ssh_username }}kube_config_cluster.yaml apply -f /home/{{ ssh_username }}/kubernetes-service.yaml"
+        shell: "/home/{{ ssh_username }}/kubectl --kubeconfig=/home/{{ ssh_username }}/kube_config_cluster.yaml apply -f /home/{{ ssh_username }}/kubernetes-service.yaml"
