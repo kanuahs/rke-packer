@@ -1,0 +1,8 @@
+nodes:
+  - address: centosvm
+    user: user1
+    role:
+      - controlplane
+      - etcd
+      - worker
+    ssh_key_path: /home/user1/.ssh/id_rsa

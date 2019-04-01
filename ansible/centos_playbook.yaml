@@ -1,0 +1,175 @@
+---
+  - hosts: all
+    become: yes
+    gather_facts: yes
+
+    tasks:
+
+      - name: modprobe - load kernel modules
+        modprobe:
+          name: "{{ item }}"
+          state: present 
+        with_items:
+            - br_netfilter
+            - ip6_udp_tunnel
+            - ip_set
+            - ip_set_hash_ip
+            - ip_set_hash_net
+            - iptable_filter
+            - iptable_nat
+            - iptable_mangle
+            - iptable_raw
+            - nf_conntrack_netlink
+            - nf_conntrack
+            - nf_conntrack_ipv4
+            - nf_defrag_ipv4
+            - nf_nat
+            - nf_nat_ipv4
+            - nf_nat_masquerade_ipv4
+            - nfnetlink
+            - udp_tunnel
+            - veth
+            - vxlan
+            - x_tables
+            - xt_addrtype
+            - xt_conntrack
+            - xt_comment
+            - xt_mark
+            - xt_multiport
+            - xt_nat
+            - xt_recent
+            - xt_set
+            - xt_statistic
+            - xt_tcpudp
+        tags:
+          - kernel_modules
+
+      - name: generate ssh keys in VM
+        become: no
+        command: "ssh-keygen -q -t rsa -f /home/{{ ssh_username }}/.ssh/id_rsa -C '' -N ''"
+        tags:
+          - ssh_keys
+
+      - name: Copy private key to host
+        fetch:
+            dest: ../id_rsa
+            src: "/home/{{ ssh_username }}/.ssh/id_rsa" 
+            flat: yes
+        tags:
+          - ssh_keys
+
+      - name: Copy public key to host
+        fetch:
+            dest: ../id_rsa.pub
+            src: "/home/{{ ssh_username }}/.ssh/id_rsa.pub"
+            flat: yes
+        tags:
+          - ssh_keys
+
+
+      - name: Add generated key to authorized keys
+        authorized_key:
+          user: "{{ssh_username}}"
+          key: "{{ lookup('file','../id_rsa.pub')}}"
+        tags:
+          - ssh_keys
+
+      - name: add docker repo
+        get_url:
+          url: https://download.docker.com/linux/centos/docker-ce.repo
+          dest: /etc/yum.repos.d/docer-ce.repo
+        tags:
+          - docker_install
+
+
+      - name: install docker
+        yum:
+          name: "{{ packages }}"
+          state: present
+          update_cache: yes
+        vars:
+          packages:
+            - docker-ce
+            - docker-ce-cli
+            - containerd.io
+        tags:
+          - docker_install
+
+      - name: start docker service
+        command: systemctl start docker
+
+      - name: Add user to "docker" group
+        user:
+          name: "{{ ssh_username }}"
+          groups: "docker"
+          append: true
+        tags:
+          - docker_install
+
+      - name: download rke binary
+        get_url:
+          dest: /home/{{ ssh_username }}/rke 
+          url: https://github.com/rancher/rke/releases/download/{{ rke_version }}/rke_linux-amd64
+          mode: 0744
+          owner: "{{ ssh_username }}"
+        tags:
+          - rke
+
+      # - name: copy rke binary
+      #   copy:
+      #     src: ../rke/rke
+      #     dest: "/home/{{ ssh_username }}/rke"
+      #     mode: 0744
+      #     owner: "{{ ssh_username }}"
+      #   tags:
+      #     - rke
+
+      - name: copy cluster.yaml
+        copy:
+          src: ../rke/centos_cluster.yaml
+          dest: "/home/{{ ssh_username }}/cluster.yaml"
+          owner: "{{ ssh_username }}"
+        tags:
+          - rke
+
+
+      - name: bootstrap the cluster using rke
+        shell: "/home/{{ ssh_username }}/rke up --config /home/{{ ssh_username }}/cluster.yaml"
+        tags:
+          - rke
+
+
+      - name: copy kube_config file to host running packer
+        fetch:
+          src: "/home/{{ ssh_username }}/kube_config_cluster.yaml"
+          dest: ../centos_kube_config_cluster.yaml
+          flat: yes
+        tags:
+          - rke
+
+      - name: install kubectl
+        get_url:
+          url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+          dest: "/home/{{ ssh_username }}/kubectl"
+          mode: 0744
+          owner: "{{ ssh_username }}"
+        tags:
+          - kubectl
+
+      - name: get kubernetes deployment yaml file
+        get_url:
+          url: https://raw.githubusercontent.com/kanuahs/flask-sample-app/master/kubernetes-deployment.yaml
+          dest: "/home/{{ ssh_username }}/kubernetes-deployment.yaml"
+        tags:
+          - flask
+
+      - name: get kubernetes service yaml file
+        get_url:
+            url: https://raw.githubusercontent.com/kanuahs/flask-sample-app/master/kubernetes-service.yaml
+            dest: "/home/{{ ssh_username }}/kubernetes-service.yaml"
+
+      - name: create a sample deployment
+        shell: "/home/{{ ssh_username }}/kubectl --kubeconfig=/home/{{ ssh_username }}/kube_config_cluster.yaml apply -f /home/{{ ssh_username }}/kubernetes-deployment.yaml"
+
+      - name: create a sample service
+        shell: "/home/{{ ssh_username }}/kubectl --kubeconfig=/home/{{ ssh_username }}/kube_config_cluster.yaml apply -f /home/{{ ssh_username }}/kubernetes-service.yaml"
