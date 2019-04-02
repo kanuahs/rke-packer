@@ -151,6 +151,20 @@
         tags:
           - rke
 
+      - name: change owner of kube_config file
+        file:
+          path: "/home/{{ ssh_username }}/kube_config_cluster.yaml"
+          owner: "{{ ssh_username }}"
+        tags:
+          - rke
+
+      - name: set KUBECONFIG environment variable
+        lineinfile:
+          path: "/home/{{ ssh_username }}/.bashrc"
+          line: "export KUBECONFIG=\"/home/{{ ssh_username }}/kube_config_cluster.yaml\""
+        tags:
+          - rke
+
       - name: install kubectl
         get_url:
           url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
