@@ -1,5 +1,5 @@
 {
-  "description": "Uses ubuntu 16.04 iso, installs rke, and launches a flask application and creates an ovf image. username, fullname and password are also set in http/preseed.cfg",
+  "description": "Uses ubuntu 18.04 iso, installs rke, and launches a flask application and creates an ovf image. username, fullname and password are also set in http/preseed.cfg",
   "variables": {
     "hostname": "ubuntuvm",
     "fullname": "user1",
