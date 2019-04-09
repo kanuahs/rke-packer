@@ -22,11 +22,13 @@ pipeline{
         stage("Build"){
             steps{
                 echo "====++++executing Build++++===="
+                dir("ubuntu"){
                 sh "packerio build \
                     -var rke_version=${params.rke_version} \
                     -var kubectl_version=${params.kubectl_version} \
                     -only=ubuntu-1604-vbox \
-                    ubuntu/ubuntu1604.json"
+                    ubuntu1604.json"
+                }
             }
             post{
                 success{
