@@ -1,0 +1,178 @@
+{
+  "description": "Uses ubuntu 18.04 iso, installs rke, and launches a flask application and creates an ovf image. username, fullname and password are also set in http/preseed.cfg",
+  "variables": {
+    "hostname": "ubuntuvm",
+    "fullname": "packer",
+    "user": "packer",
+    "password": "packer",
+    "disk_size": "20480",
+    "rke_version": "v0.2.0",
+    "kubectl_version": "v1.14.0",
+    "iso_checksum_url": "http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/SHA256SUMS",
+    "iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/ubuntu-18.04.2-server-amd64.iso",
+    "format":"ova"
+  },
+  "builders": [
+    {
+      "headless": true,
+      "type": "virtualbox-iso",
+      "iso_checksum_type": "sha256",
+      "iso_checksum_url": "{{user `iso_checksum_url`}}",
+      "iso_urls": [
+        "{{user `iso_url`}}"
+      ],
+      "boot_wait": "10s",
+      "http_directory": "http",
+      "disk_size": "{{user `disk_size`}}",
+      "vm_name": "packer-ubuntu-18.04-amd64",
+      "shutdown_command": "echo '{{user `password`}}' | sudo -S shutdown -P now",
+      "guest_os_type": "Ubuntu_64",
+      "boot_command": [
+        "<esc><wait>",
+        "<esc><wait>",
+        "<enter><wait>",
+        "/install/vmlinuz<wait>",
+        " auto<wait>",
+        " console-setup/ask_detect=false<wait>",
+        " console-setup/layoutcode=us<wait>",
+        " console-setup/modelcode=pc105<wait>",
+        " debconf/frontend=noninteractive<wait>",
+        " debian-installer=en_US<wait>",
+        " fb=false<wait>",
+        " initrd=/install/initrd.gz<wait>",
+        " kbd-chooser/method=us<wait>",
+        " keyboard-configuration/layout=USA<wait>",
+        " keyboard-configuration/variant=USA<wait>",
+        " locale=en_US<wait>",
+        " netcfg/get_domain=vm<wait>",
+        " netcfg/get_hostname={{user `hostname`}}<wait>",
+        " grub-installer/bootdev=/dev/sda<wait>",
+        " noapic<wait>",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<wait>",
+        " -- <wait>",
+        "<enter><wait>"
+      ],
+      "vboxmanage": [
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--memory",
+          "3072"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--cpus",
+          "4"
+        ]
+      ],
+      "communicator": "ssh",
+      "ssh_username": "{{user `user`}}",
+      "ssh_password": "{{user `password`}}",
+      "ssh_port": 22,
+      "ssh_wait_timeout": "10000s"
+    },
+    {
+      "name": "ubuntu-1804-server",
+      "type": "qemu",
+      "format": "qcow2",
+      "accelerator": "kvm",
+      "disk_size": "{{ user `disk_size`}}",
+      "iso_checksum_url": "{{user `iso_checksum_url`}}",
+      "iso_urls": "{{user `iso_url`}}",
+      "iso_checksum_type": "sha256",
+      "qemuargs": [
+        [
+          "-vga",
+          "std"
+        ],
+        [
+          "-nographic",
+          ""
+        ],
+        [
+          "-m",
+          "8000M"
+        ],
+        [
+          "-smp",
+          "4"
+        ]
+      ],
+      "http_directory": "http",
+      "headless": true,
+      "net_device": "virtio-net-pci",
+      "machine_type": "q35",
+      "ssh_username": "{{user `user`}}",
+      "ssh_password": "{{user `password`}}",
+      "ssh_wait_timeout": "45m",
+      "shutdown_command": "echo '{{user `password`}}'|sudo -S shutdown -P now",
+      "boot_wait": "5s",
+      "boot_command": [
+        "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "/install/vmlinuz<wait>",
+        " auto<wait>",
+        " console-setup/ask_detect=false<wait>",
+        " console-setup/layoutcode=us<wait>",
+        " console-setup/modelcode=pc105<wait>",
+        " debconf/frontend=noninteractive<wait>",
+        " debian-installer=en_US.UTF-8<wait>",
+        " fb=false<wait>",
+        " initrd=/install/initrd.gz<wait>",
+        " kbd-chooser/method=us<wait>",
+        " keyboard-configuration/layout=USA<wait>",
+        " keyboard-configuration/variant=USA<wait>",
+        " locale=en_US.UTF-8<wait>",
+        " netcfg/get_domain=vm<wait>",
+        " netcfg/get_hostname=vagrant<wait>",
+        " grub-installer/bootdev=/dev/vda<wait>",
+        " noapic<wait>",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu-18.04-server-amd64.cfg<wait>",
+        " -- <wait>",
+        "<enter><wait>"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "rke/cluster.yaml",
+      "destination": "/home/{{user `user`}}/cluster.yaml" 
+    },
+    {
+      "type": "file",
+      "source": "ansible/playbook.yaml",
+      "destination": "/home/{{user `user`}}/playbook.yaml" 
+    },    
+    {
+      "type": "shell",
+      "environment_vars": ["HOSTNAME={{user `hostname`}}",
+        "USER={{user `user`}}"
+      ],
+      "scripts": [
+         "scripts/rke-cluster-config.sh"
+      ]
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo '{{user `password`}}' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+      "scripts": [
+            "scripts/update.sh",
+            "scripts/console.sh",
+            "scripts/network.sh",
+            "scripts/sudo.sh",
+            "scripts/ansible.sh"
+      ]
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "ansible/playbook.yaml",
+      "extra_arguments": [
+        "--extra-vars \"-vvvvv -b ansible_become_user=root ansible_become_pass={{user `password`}} ssh_username={{user `user`}} rke_version={{user `rke_version`}} kubectl_version={{user `kubectl_version`}}\""
+      ]
+    }
+  ]
+}
