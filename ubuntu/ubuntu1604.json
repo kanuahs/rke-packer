@@ -11,7 +11,7 @@
     "iso_checksum_url": "http://releases.ubuntu.com/16.04/SHA256SUMS",
     "iso_url": "http://releases.ubuntu.com/16.04/ubuntu-16.04.6-server-amd64.iso",
     "format":"ova",
-    "boot_keygroup_interval":"1000ms"
+    "boot_keygroup_interval":"5000ms"
   },
   "builders": [
     {
