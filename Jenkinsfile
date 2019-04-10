@@ -1,8 +1,8 @@
 pipeline{
     agent any
     parameters{
-        string(name:"rke_version",defaultValue:"0.2.0",description:"RKE version")
-        string(name:"kubectl_version",defaultValue:"1.14.1",description: "Kubectl version")
+        string(name:"rke_version",defaultValue:"v0.2.0",description:"RKE version")
+        string(name:"kubectl_version",defaultValue:"v1.14.1",description: "Kubectl version")
     }
     stages{
         stage("Preperation"){
