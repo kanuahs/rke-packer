@@ -19,24 +19,44 @@ pipeline{
                 }
             }
         }
-        stage("Build"){
+        stage("Build QEMU"){
             steps{
-                echo "====++++executing Build++++===="
+                echo "====++++executing Build QEMU++++===="
                 dir("ubuntu"){
                 sh "packerio build \
                     -var rke_version=${params.rke_version} \
                     -var kubectl_version=${params.kubectl_version} \
-                    -only=ubuntu-1604-vbox \
+                    -only=ubuntu-1604-qemu \
                     ubuntu1604.json"
                 }
             }
             post{
                 success{
-                    echo "====++++Build executed succesfully++++===="
+                    echo "====++++Build QEMU executed succesfully++++===="
                 }
                 failure{
-                    echo "====++++Build execution failed++++===="
+                    echo "====++++Build QEMU execution failed++++===="
                 }
+            }
+        }
+        stage("Convert to VMDK"){
+            steps{
+                echo "====++++executing Convert to VMDK++++===="
+                dir("ubuntu"){
+                    sh "qemu-img convert -f qcow2 -O vmdk output-ubuntu-1604-qemu/packer-ubuntu-1604-qemu conversion-files/ubuntu-disk001.vmdk"
+                }
+                dir("ubuntu/conversion-files"){
+                    sh "packerio build ova-builder.json"
+                }
+            }
+            post{
+                success{
+                    echo "====++++Convert to VMDK executed succesfully++++===="
+                }
+                failure{
+                    echo "====++++Convert to VMDK execution failed++++===="
+                }
+        
             }
         }
     }

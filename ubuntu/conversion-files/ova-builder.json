@@ -1,0 +1,16 @@
+{
+  "description": "Converts ovf+vmdk to ova",
+  "builders": [
+    {
+      "name": "ubuntu-1604-converter",
+      "type": "virtualbox-ovf",
+      "source_path": "ubuntu.ovf",
+      "ssh_username": "packer",
+      "ssh_password": "packer",
+      "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
+      "format": "ova",
+      "headless": "true",
+      "vm_name":"packer-rke"
+    }
+  ]
+}
